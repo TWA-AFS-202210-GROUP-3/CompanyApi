@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using CompanyApiTest.Controllers;
 
 namespace CompanyApi.Controllers
 {
@@ -10,7 +11,7 @@ namespace CompanyApi.Controllers
     public class CompanyController
     {
         private static List<Company> companies = new List<Company>();
-        
+
         [HttpPost]
         public ActionResult<Company> AddNewCompany(Company company)
         {
@@ -25,6 +26,15 @@ namespace CompanyApi.Controllers
                 companies.Add(company);
                 return new CreatedResult($"/companies/{company.CompanyID}", company);
             }
+        }
+
+        [HttpPost("{companyId}/employees")]
+        public List<Company> AddNewEmployee([FromRoute] string companyId, Employee employee)
+        {
+            employee.EmployeeId = Guid.NewGuid().ToString();
+            var matchedcompany = companies.FindIndex(item => item.CompanyID == companyId);
+            companies[matchedcompany].Employees.Add(employee);
+            return companies;
         }
 
         [HttpDelete]
@@ -54,7 +64,7 @@ namespace CompanyApi.Controllers
         }
 
         [HttpPut("{companyId}")]
-        public List<Company> UpdateCompany([FromRoute]string companyId, Company company)
+        public List<Company> UpdateCompany([FromRoute] string companyId, Company company)
         {
             companies.Find(item => item.CompanyID == company.CompanyID).Name = company.Name;
             return companies;

@@ -124,8 +124,8 @@ namespace CompanyApiTest.Controllers
                 new Company(name: "Katy"),
                 new Company(name: "Toms"),
                 new Company(name: "Andy"),
-                new Company(name: "SLBB"),
-                new Company(name: "BGCC"),
+                new Company(name: "SLB"),
+                new Company(name: "BGC"),
             };
             foreach (var company in companies)
             {
@@ -141,8 +141,8 @@ namespace CompanyApiTest.Controllers
             var companyGot = JsonConvert.DeserializeObject<List<Company>>(responseCompanyBody);
             Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
             Assert.Equal(2, companyGot.Count);
-            Assert.Equal("SLBB", companyGot[0].Name);
-            Assert.Equal("BGCC", companyGot[1].Name);
+            Assert.Equal("SLB", companyGot[0].Name);
+            Assert.Equal("BGC", companyGot[1].Name);
         }
 
         [Fact]
@@ -157,8 +157,8 @@ namespace CompanyApiTest.Controllers
                 new Company(name: "Katy"),
                 new Company(name: "Toms"),
                 new Company(name: "Andy"),
-                new Company(name: "SLBB"),
-                new Company(name: "BGCC"),
+                new Company(name: "SLB"),
+                new Company(name: "BGC"),
             };
             foreach (var company in companies)
             {
@@ -182,6 +182,45 @@ namespace CompanyApiTest.Controllers
             var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseBodyCompanies);
             Assert.Equal(HttpStatusCode.OK, responseCompanies.StatusCode);
             Assert.Equal("ABCD", companiesNew[4].Name);
+        }
+
+        [Fact]
+        public async void Should_be_able_to_add_an_employee_to_a_specific_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var companies = new List<Company>
+             {
+                 new Company(name: "PEPSI"),
+                 new Company(name: "COLA"),
+                 new Company(name: "FANTA"),
+                 new Company(name: "SLB"),
+                 new Company(name: "BGC"),
+             };
+            foreach (var company in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(company);
+                var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync("/companies", postBody);
+            }
+
+            var response = await httpclient.GetAsync("/companies");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+
+            var companyId = companinesObtained[3].CompanyID;
+            var employee = new Employee(name: "Katy", salary: "10w");
+            var employeeJson = JsonConvert.SerializeObject(employee);
+            var postBodyEmployee = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+            //when
+            var responseCompanies = await httpclient.PostAsync($"/companies/{companyId}/employees", postBodyEmployee);
+            //then
+            var responseBodyCompanies = await responseCompanies.Content.ReadAsStringAsync();
+            var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseBodyCompanies);
+            Assert.Equal(HttpStatusCode.OK, responseCompanies.StatusCode);
+            Assert.Equal("Katy", companiesNew[3].Employees[0].Name);
         }
     }
 }
