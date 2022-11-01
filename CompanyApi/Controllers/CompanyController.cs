@@ -94,6 +94,22 @@ namespace CompanyApi.Controllers
             return BadRequest();
         }
 
+        [HttpPut]
+        [Route("{companyID}/employees/{employeeID}")]
+        public ActionResult<Employee> UpdateEmployeeInfo([FromRoute] string companyID, [FromRoute] string employeeID, [FromBody] Employee employee)
+        {
+            Company com = companies.Find(item => item.ID == companyID);
+            if (com != null)
+            {
+                var employeeFound = com.Employees.Find(item => item.Id == employeeID);
+                employeeFound.Name = employee.Name;
+                employeeFound.Salary = employee.Salary;
+                return employeeFound;
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost]
         [Route("{ID}/employees")]
         public ActionResult<Employee> AddEmployee([FromBody] Employee employee, [FromRoute] string id)

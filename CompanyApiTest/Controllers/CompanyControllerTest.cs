@@ -205,7 +205,7 @@ namespace CompanyApiTest.Controllers
             Employee employee = new Employee("Liming", 5000);
             Employee employee1 = new Employee("Zhaomin", 7000);
             List<Employee> employees = new List<Employee>() { employee, employee1 };
-            foreach(Employee item in employees)
+            foreach (Employee item in employees)
             {
                 var employeeJson = JsonConvert.SerializeObject(item);
                 var postRequestBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
@@ -217,6 +217,39 @@ namespace CompanyApiTest.Controllers
             var allEmployee = JsonConvert.DeserializeObject<List<Employee>>(responseBody1);
             //then
             Assert.Equal(2, allEmployee.Count);
+        }
+
+        [Fact]
+        public async Task Should_return_modified_employee_when_update_employee_info_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            Employee employee = new Employee("Liming", 5000);
+            var employeeJson = JsonConvert.SerializeObject(employee);
+            var postRequestBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+            var postEmployeeResponse = await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody);
+            var postEmployeeResponseBody = await postEmployeeResponse.Content.ReadAsStringAsync();
+            var addedEmployee = JsonConvert.DeserializeObject<Employee>(postEmployeeResponseBody);
+
+            //when
+            addedEmployee.Salary = 9000;
+            var employeeJson1 = JsonConvert.SerializeObject(addedEmployee);
+            var postRequestBody1 = new StringContent(employeeJson1, Encoding.UTF8, "application/json");
+            var reponse = await httpClient.PutAsync($"/companies/{createdCompany.ID}/employees/{addedEmployee.Id}", postRequestBody1);
+            var responseBody1 = await reponse.Content.ReadAsStringAsync();
+            var employeeModified = JsonConvert.DeserializeObject<Employee>(responseBody1);
+            //then
+            Assert.Equal(9000, employeeModified.Salary);
         }
     }
 }
