@@ -64,6 +64,14 @@ namespace CompanyApi.Controllers
             return companyList[matchedCompanyIndex];
         }
 
+        [HttpPut("companies/{id}/employees")]
+        public ActionResult<Company> UpdateEmployeeInCompany([FromRoute] string id, Employee employee)
+        {
+            var matchedCompanyIndex = companyList.FindIndex(item => item.CompanyID == id);
+            companyList[matchedCompanyIndex].Employees.Add(employee);
+            return companyList[matchedCompanyIndex];
+        }
+
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {

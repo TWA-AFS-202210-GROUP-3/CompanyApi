@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using Xunit;
+using Guid = System.Guid;
 
 namespace CompanyApiTest.Controllers
 {
@@ -172,6 +173,34 @@ namespace CompanyApiTest.Controllers
             var updatedCompany = JsonConvert.DeserializeObject<Company>(updatedRes);
             //then
             Assert.Equal("Schlumberger", updatedCompany.Name);
+        }
+
+        [Fact]
+        public async void Should_insert_employees_to_company_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            Employee employee = new Employee(name: "Bob", salary: 5000);
+
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Employees.Add(employee);
+
+            var updatedCompany = JsonConvert.SerializeObject(createdCompany);
+            var updatedCompanyStringContent = new StringContent(updatedCompany, Encoding.UTF8, "application/json");
+            var updatedResponseMessage =
+                await httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}/employees", updatedCompanyStringContent);
+            var updatedResponseContent = await updatedResponseMessage.Content.ReadAsStringAsync();
+            var updatedEmployeeCompany = JsonConvert.DeserializeObject<Company>(updatedResponseContent);
+
+            //then
+            Assert.Single(updatedEmployeeCompany.Employees);
         }
 
         private HttpClient CreateHttpClient()
