@@ -22,6 +22,7 @@ namespace CompanyApiTest.Controllers
             //given
             var application = new WebApplicationFactory<Program>();
             var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
             var company = new Company("SLB");
             var companyJson = JsonConvert.SerializeObject(company);
             var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
@@ -42,6 +43,7 @@ namespace CompanyApiTest.Controllers
             //given
             var application = new WebApplicationFactory<Program>();
             var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
             var company = new Company("SLB");
             var companyJson = JsonConvert.SerializeObject(company);
             var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
@@ -62,6 +64,7 @@ namespace CompanyApiTest.Controllers
             //given
             var application = new WebApplicationFactory<Program>();
             var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
             var company = new Company("SLB");
             var company1 = new Company("HappyDog");
             var companies = new List<Company>() { company, company1 };
@@ -86,6 +89,7 @@ namespace CompanyApiTest.Controllers
             //given
             var application = new WebApplicationFactory<Program>();
             var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
             var company = new Company("SLB");
             var companyJson = JsonConvert.SerializeObject(company);
             var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
@@ -99,6 +103,36 @@ namespace CompanyApiTest.Controllers
             var getCompany = JsonConvert.DeserializeObject<Company>(responseBody);
             //then
             Assert.Equal("SLB", getCompany.Name);
+        }
+
+        [Fact]
+        public async Task Should_return_one_company_when_given_pageSize_and_pageIndex()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var company = new Company("SLB");
+            var company1 = new Company("HappyDog");
+            var company2 = new Company("BadTom");
+            var company3 = new Company("Sweety");
+            var company4 = new Company("Cute");
+            var company5 = new Company("Molly");
+            var company6 = new Company("Crazy");
+            var companies = new List<Company>() { company, company1, company2, company3, company4, company5, company6 };
+            foreach (Company com in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(com);
+                var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpClient.PostAsync("/companies", requestBody);
+            }
+
+            //when
+            var reponse = await httpClient.GetAsync("/companies?pageSize=3&pageIndex=3");
+            var responseBody = await reponse.Content.ReadAsStringAsync();
+            var allCompaniesInPageIndex = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            //then
+            Assert.Single(allCompaniesInPageIndex);
         }
     }
 }

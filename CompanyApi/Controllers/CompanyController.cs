@@ -35,9 +35,29 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet]
-        public List<Company> GetAllCompanies()
+        public ActionResult<List<Company>> GetCompanies([FromQuery] int? pageSize, [FromQuery] int? pageIndex)
         {
-            return companies;
+            if (pageSize == null && pageIndex == null)
+            {
+                return companies;
+            }
+            else if (pageSize != null && pageIndex != null) 
+            {
+                int skipCount = (int)(pageSize * (pageIndex - 1));
+                if (companies.Count - skipCount > 0)
+                {
+                    if (companies.Count - skipCount <= pageSize)
+                    {
+                        return companies.GetRange(skipCount, companies.Count - skipCount);
+                    }
+                    else
+                    {
+                        return companies.GetRange(skipCount, (int)pageSize);
+                    }
+                }
+            }
+
+            return new BadRequestResult();
         }
 
         [HttpGet]
