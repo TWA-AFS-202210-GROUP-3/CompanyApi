@@ -78,5 +78,38 @@ namespace CompanyApiTest.Controllers
             var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
             Assert.Equal(3, companinesObtained.Count);
         }
+
+        [Fact]
+        public async void Should_obtain_an_exsiting_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var companies = new List<Company>
+            {
+                new Company(name: "Katy"),
+                new Company(name: "Toms"),
+                new Company(name: "Andy")
+            };
+            foreach (var company in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(company);
+                var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync("/companies", postBody);
+            }
+
+            var response = await httpclient.GetAsync("/companies");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            var companyId = companinesObtained[0].CompanyID;
+            //when
+            var responseCompany = await httpclient.GetAsync($"/companies/{companyId}");
+            //then
+            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
+            var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
+            var companyGot = JsonConvert.DeserializeObject<Company>(responseCompanyBody);
+            Assert.Equal("Katy", companyGot.Name);
+        }
     }
 }
