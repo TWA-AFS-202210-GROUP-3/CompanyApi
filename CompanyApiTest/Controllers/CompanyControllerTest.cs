@@ -255,6 +255,28 @@ namespace CompanyApiTest.Controllers
             Assert.Empty(companyAfterDelEmployee.Employees);
         }
 
+        [Fact]
+        public async Task Should_delete_a_specific_company()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+
+            var responseOld = await httpClient.GetAsync("/companies");
+            var responseBodyOld = await responseOld.Content.ReadAsStringAsync();
+            var companyToDel = JsonConvert.DeserializeObject<List<Company>>(responseBodyOld)[0];
+
+            //when
+            var response = await httpClient.DeleteAsync($"/companies/{companyToDel.CompanyID}");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var companiesAfterDelCompanyResponse = await httpClient.GetAsync($"/companies");
+            var companiesAfterDelCompanyBody = await companiesAfterDelCompanyResponse.Content.ReadAsStringAsync();
+            var companiesAfterDelCompany = JsonConvert.DeserializeObject<List<Company>>(companiesAfterDelCompanyBody);
+            Assert.Empty(companiesAfterDelCompany);
+        }
+
         private static async Task PostEmployeeToACompany(HttpClient httpClient, Employee employee, Company companyToPost)
         {
             var employeeJson = JsonConvert.SerializeObject(employee);
