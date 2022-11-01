@@ -106,7 +106,6 @@ namespace CompanyApiTest.Controllers
             await PostCompany(httpClient, new Company("FFF"));
             await PostCompany(httpClient, new Company("GGG"));
 
-
             var pageSize = 3;
             var pageIndex = 2;
 
@@ -169,6 +168,37 @@ namespace CompanyApiTest.Controllers
             var responseBody = await response.Content.ReadAsStringAsync();
             var employee = JsonConvert.DeserializeObject<Employee>(responseBody);
             Assert.Equal("Lucy", employee.Name);
+        }
+
+        [Fact]
+        public async Task Should_get_all_employees_under_company()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+
+            var getCompanyResponse = await httpClient.GetAsync("/companies");
+            var getCompanyBody = await getCompanyResponse.Content.ReadAsStringAsync();
+            var companyToGet = JsonConvert.DeserializeObject<List<Company>>(getCompanyBody)[0];
+
+            await PostEmployeeToACompany(httpClient, new Employee("Lucy", 5000), companyToGet);
+            await PostEmployeeToACompany(httpClient, new Employee("Jerry", 7000), companyToGet);
+
+            //when
+            var response = await httpClient.GetAsync($"/companies/{companyToGet.CompanyID}/employees");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
+            Assert.Equal(2, employees.Count);
+        }
+
+        private static async Task PostEmployeeToACompany(HttpClient httpClient, Employee employee, Company companyToPost)
+        {
+            var employeeJson = JsonConvert.SerializeObject(employee);
+            var postBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+            await httpClient.PostAsync($"/companies/{companyToPost.CompanyID}/employees", postBody);
         }
 
         private static async Task<HttpClient> CreateHttpClient()
