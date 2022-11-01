@@ -20,6 +20,7 @@ namespace CompanyApiTest.Controllers
             // given
             var application = new WebApplicationFactory<Program>();
             var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
             var company = new Company(name: "SLB");
             var companyJson = JsonConvert.SerializeObject(company);
             var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
@@ -30,6 +31,23 @@ namespace CompanyApiTest.Controllers
             var responseBody = await response.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
             Assert.NotEmpty(createdCompany.CompanyID);
+        }
+
+        [Fact]
+        public async void Should_return_conflict_when_company_already_exsited()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var company = new Company(name: "SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            //when
+            await httpclient.PostAsync("/companies", postBody);
+            var response = await httpclient.PostAsync("/companies", postBody);
+            //then
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
     }
 }

@@ -13,9 +13,23 @@ namespace CompanyApi.Controllers
         [HttpPost]
         public ActionResult<Company> AddNewCompany(Company company)
         {
-            company.CompanyID = Guid.NewGuid().ToString();
-            companies.Add(company);
-            return new CreatedResult($"/companies/{company.CompanyID}", company);
+            var companyNameExists = companies.Exists(companyToCompare => companyToCompare.Name.Equals(company.Name));
+            if (companyNameExists)
+            {
+                return new ConflictResult();
+            }
+            else
+            {
+                company.CompanyID = Guid.NewGuid().ToString();
+                companies.Add(company);
+                return new CreatedResult($"/companies/{company.CompanyID}", company);
+            }
+        }
+
+        [HttpDelete]
+        public void DeleteAllCompanies()
+        {
+            companies.Clear();
         }
     }
 }
