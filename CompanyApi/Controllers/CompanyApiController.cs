@@ -72,6 +72,13 @@ namespace CompanyApi.Controllers
             return companyList[matchedCompanyIndex];
         }
 
+        [HttpGet("companies/{id}/employees")]
+        public ActionResult<List<Employee>> GetAllEmployeesInCompany([FromRoute] string id)
+        {
+            var matchedCompany = companyList.Find(item => item.CompanyID == id);
+            return matchedCompany.Employees;
+        }
+
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {

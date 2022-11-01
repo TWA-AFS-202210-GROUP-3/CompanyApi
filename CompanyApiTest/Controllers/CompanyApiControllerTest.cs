@@ -203,6 +203,36 @@ namespace CompanyApiTest.Controllers
             Assert.Single(updatedEmployeeCompany.Employees);
         }
 
+        [Fact]
+        public async void Should_get_all_employees_from_company_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            Employee employee = new Employee(name: "Bob", salary: 5000);
+
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Employees.Add(employee);
+
+            var updatedCompany = JsonConvert.SerializeObject(createdCompany);
+            var updatedCompanyStringContent = new StringContent(updatedCompany, Encoding.UTF8, "application/json");
+
+            await httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}/employees", updatedCompanyStringContent);
+
+            var allEmployeeMessage = await httpClient.GetAsync($"/api/companies/{createdCompany.CompanyID}/employees");
+            var allEmployeesContent = await allEmployeeMessage.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(allEmployeesContent);
+            //then
+            Assert.Equal(HttpStatusCode.OK, allEmployeeMessage.StatusCode);
+            Assert.Single(employees);
+        }
+
         private HttpClient CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();
