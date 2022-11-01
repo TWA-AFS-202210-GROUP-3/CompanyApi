@@ -58,5 +58,13 @@ namespace CompanyApi.Controllers
             companyFound.Name = company.Name;
             return companyFound;
         }
+
+        [HttpPost("{id}/employees")]
+        public Employee AddNewEmployee([FromRoute] string id, Employee employee)
+        {
+            var companyFound = companies.Find(company => company.CompanyID == id);
+            companyFound.Employees.Add(employee);
+            return employee;
+        }
     }
 }
