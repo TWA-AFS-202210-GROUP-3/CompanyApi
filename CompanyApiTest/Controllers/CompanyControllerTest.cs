@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -164,7 +165,7 @@ namespace CompanyApiTest.Controllers
             var response = await httpClient.PostAsync($"/companies/{companyToAdd.CompanyID}/employees", postBody);
 
             //then
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             var responseBody = await response.Content.ReadAsStringAsync();
             var employee = JsonConvert.DeserializeObject<Employee>(responseBody);
             Assert.Equal("Lucy", employee.Name);
@@ -192,6 +193,37 @@ namespace CompanyApiTest.Controllers
             var responseBody = await response.Content.ReadAsStringAsync();
             var employees = JsonConvert.DeserializeObject<List<Employee>>(responseBody);
             Assert.Equal(2, employees.Count);
+        }
+
+        [Fact]
+        public async Task Should_update_basic_information_of_a_specific_employee_under_a_specific_company()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+
+            var companyResponse = await httpClient.GetAsync("/companies");
+            var companyBody = await companyResponse.Content.ReadAsStringAsync();
+            var companyToGet = JsonConvert.DeserializeObject<List<Company>>(companyBody)[0];
+
+            await PostEmployeeToACompany(httpClient, new Employee("Lucy", 5000), companyToGet);
+
+            var employeeResponse = await httpClient.GetAsync($"/companies/{companyToGet.CompanyID}/employees");
+            var employeeBody = await employeeResponse.Content.ReadAsStringAsync();
+            var employeeToGet = JsonConvert.DeserializeObject<List<Employee>>(employeeBody)[0];
+
+            employeeToGet.Name = "Lulu";
+            var employeeJson = JsonConvert.SerializeObject(employeeToGet);
+            var postBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+
+            //when
+            var response = await httpClient.PutAsync($"/companies/{companyToGet.CompanyID}/employees/{employeeToGet.EmployeeID}", postBody);
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var employee = JsonConvert.DeserializeObject<Employee>(responseBody);
+            Assert.Equal("Lulu", employee.Name);
         }
 
         private static async Task PostEmployeeToACompany(HttpClient httpClient, Employee employee, Company companyToPost)

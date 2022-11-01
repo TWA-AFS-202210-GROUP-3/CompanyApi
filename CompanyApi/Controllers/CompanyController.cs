@@ -60,17 +60,29 @@ namespace CompanyApi.Controllers
         }
 
         [HttpPost("{id}/employees")]
-        public Employee AddNewEmployee([FromRoute] string id, Employee employee)
+        public ActionResult<Employee> AddNewEmployee([FromRoute] string id, Employee employee)
         {
             var companyFound = companies.Find(company => company.CompanyID == id);
+
+            employee.EmployeeID = Guid.NewGuid().ToString();
             companyFound.Employees.Add(employee);
-            return employee;
+            return new CreatedResult($"/companies/{companyFound.CompanyID}/employees/{employee.EmployeeID}", employee);
         }
 
         [HttpGet("{id}/employees")]
         public List<Employee> GetAllEmployeee([FromRoute] string id)
         {
-            return companies.Find(company => company.CompanyID == id).Employees;
+            var temp = companies.Find(company => company.CompanyID == id);
+            return temp.Employees;
+        }
+
+        [HttpPut("{id}/employees/{employeeID}")]
+        public Employee UpdateEmployww([FromRoute] string id, string employeeID, Employee employee)
+        {
+            var companyFound = companies.Find(company => company.CompanyID == id);
+            var employeeFound = companyFound.Employees.Find(employee => employee.EmployeeID == employeeID);
+            employeeFound.Name = employee.Name;
+            return employeeFound;
         }
     }
 }
