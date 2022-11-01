@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Xunit;
 using CompanyApi.Model;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Http;
 
 namespace CompanyApiTest.Controllers
 {
@@ -250,6 +251,45 @@ namespace CompanyApiTest.Controllers
             var employeeModified = JsonConvert.DeserializeObject<Employee>(responseBody1);
             //then
             Assert.Equal(9000, employeeModified.Salary);
+        }
+
+        [Fact]
+        public async Task Should_delete_one_employee_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            Employee employee = new Employee("Liming", 5000);
+            Employee employee1 = new Employee("Zhaomin", 7000);
+            Employee employee2 = new Employee("Zhaomin1", 9000);
+            var employeeJson = JsonConvert.SerializeObject(employee2);
+            var postRequestBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+            var responseMessage = await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody);
+
+            List<Employee> employees = new List<Employee>() { employee, employee1 };
+            foreach (Employee item in employees)
+            {
+                var employeeJson1 = JsonConvert.SerializeObject(item);
+                var postRequestBody2 = new StringContent(employeeJson1, Encoding.UTF8, "application/json");
+                await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody2);
+            }
+
+            var responseBody1 = await responseMessage.Content.ReadAsStringAsync();
+            var oneEmployee = JsonConvert.DeserializeObject<Employee>(responseBody1);
+
+            //when
+            var reponse = await httpClient.DeleteAsync($"/companies/{createdCompany.ID}/employees/{oneEmployee.Id}");
+            //then
+            Assert.Equal(HttpStatusCode.OK, reponse.StatusCode);
         }
     }
 }
