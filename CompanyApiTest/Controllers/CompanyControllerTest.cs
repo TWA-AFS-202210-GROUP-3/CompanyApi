@@ -57,7 +57,7 @@ namespace CompanyApiTest.Controllers
         }
 
         [Fact]
-        public async Task Should_return_all_conmpanies()
+        public async Task Should_return_all_companies()
         {
             //given
             var application = new WebApplicationFactory<Program>();
@@ -78,6 +78,27 @@ namespace CompanyApiTest.Controllers
             var allCompanies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
             //then
             Assert.Equal(2, allCompanies.Count);
+        }
+
+        [Fact]
+        public async Task Should_return_one_company_when_search_by_name()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            //when
+            var reponse = await httpClient.GetAsync($"/companies/{createdCompany.ID}");
+            var responseBody = await reponse.Content.ReadAsStringAsync();
+            var getCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            //then
+            Assert.Equal("SLB", getCompany.Name);
         }
     }
 }

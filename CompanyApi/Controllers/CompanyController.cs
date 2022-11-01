@@ -39,5 +39,12 @@ namespace CompanyApi.Controllers
         {
             return companies;
         }
+
+        [HttpGet]
+        [Route("{ID}")]
+        public Company GetOneCompanyByID([FromRoute] string id)
+        {
+            return companies.Find(item => item.ID.Equals(id));
+        }
     }
 }
