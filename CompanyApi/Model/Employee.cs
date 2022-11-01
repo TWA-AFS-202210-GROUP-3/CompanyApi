@@ -1,4 +1,4 @@
-﻿namespace CompanyApiTest.Controllers
+﻿namespace CompanyApi.Model
 {
     public class Employee
     {

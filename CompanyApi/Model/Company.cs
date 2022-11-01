@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using CompanyApiTest.Controllers;
 
-namespace CompanyApi.Controllers
+namespace CompanyApi.Model
 {
     public class Company
     {
