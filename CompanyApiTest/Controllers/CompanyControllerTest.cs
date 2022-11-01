@@ -134,5 +134,30 @@ namespace CompanyApiTest.Controllers
             //then
             Assert.Single(allCompaniesInPageIndex);
         }
+
+        [Fact]
+        public async Task Should_return_modified_company_when_update_info()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            //when
+            createdCompany.Name = "AnotherName";
+            var companyJson1 = JsonConvert.SerializeObject(createdCompany);
+            var putRequestBody = new StringContent(companyJson1, Encoding.UTF8, "application/json");
+            var reponse = await httpClient.PutAsync($"/companies/{createdCompany.ID}", putRequestBody);
+            var responseBody1 = await reponse.Content.ReadAsStringAsync();
+            var modifiedCompany = JsonConvert.DeserializeObject<Company>(responseBody1);
+            //then
+            Assert.Equal("AnotherName", modifiedCompany.Name);
+        }
     }
 }

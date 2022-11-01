@@ -66,5 +66,19 @@ namespace CompanyApi.Controllers
         {
             return companies.Find(item => item.ID.Equals(id));
         }
+
+        [HttpPut]
+        [Route("{ID}")]
+        public ActionResult<Company> UpdateCompanyInfo([FromRoute] string id, [FromBody]Company company)
+        {
+            Company com = companies.Find(item => item.ID == id);
+            if (com != null)
+            {
+                com.Name = company.Name;
+                return com;
+            }
+
+            return BadRequest();
+        }
     }
 }
