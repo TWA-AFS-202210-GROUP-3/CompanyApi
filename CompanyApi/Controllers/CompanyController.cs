@@ -77,12 +77,20 @@ namespace CompanyApi.Controllers
         }
 
         [HttpPut("{id}/employees/{employeeID}")]
-        public Employee UpdateEmployww([FromRoute] string id, string employeeID, Employee employee)
+        public Employee UpdateEmployee([FromRoute] string id, string employeeID, Employee employee)
         {
             var companyFound = companies.Find(company => company.CompanyID == id);
             var employeeFound = companyFound.Employees.Find(employee => employee.EmployeeID == employeeID);
             employeeFound.Name = employee.Name;
             return employeeFound;
+        }
+
+        [HttpDelete("{id}/employees/{employeeID}")]
+        public void DeleteEmployee([FromRoute] string id, string employeeID)
+        {
+            var companyFound = companies.Find(company => company.CompanyID == id);
+            var employeeFound = companyFound.Employees.Find(employee => employee.EmployeeID == employeeID);
+            companyFound.Employees.Remove(employeeFound);
         }
     }
 }
