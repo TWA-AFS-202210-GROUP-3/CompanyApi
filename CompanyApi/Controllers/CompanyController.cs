@@ -32,8 +32,7 @@ namespace CompanyApi.Controllers
         public List<Company> AddNewEmployee([FromRoute] string companyId, Employee employee)
         {
             employee.EmployeeId = Guid.NewGuid().ToString();
-            var matchedcompany = companies.FindIndex(item => item.CompanyID == companyId);
-            companies[matchedcompany].Employees.Add(employee);
+            companies.Find(item => item.CompanyID == companyId).Employees.Add(employee);
             return companies;
         }
 
@@ -48,6 +47,13 @@ namespace CompanyApi.Controllers
         {
             var companyGot = companies.Find(company => company.CompanyID == companyId);
             return companyGot;
+        }
+
+        [HttpGet("{companyId}/employees")]
+        public List<Employee> GetAllEmployee([FromRoute] string companyId)
+        {
+            var employees = companies.Find(company => company.CompanyID == companyId).Employees;
+            return employees;
         }
 
         [HttpGet]
