@@ -121,6 +121,32 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("CCC", companiesGot[0].Name);
         }
 
+        [Fact]
+        public async Task Should_update_basic_information_of_an_existing_company()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            Company company = new Company("Schlumberger");
+            await PostCompany(httpClient, company);
+
+            var responseOld = await httpClient.GetAsync("/companies");
+            var responseBodyOld = await responseOld.Content.ReadAsStringAsync();
+            var companyToUpdate = JsonConvert.DeserializeObject<List<Company>>(responseBodyOld)[0];
+
+            company.Name = "SLB";
+            var companyJson = JsonConvert.SerializeObject(company);
+            var putBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+
+            //when
+            var response = await httpClient.PutAsync($"/companies/{companyToUpdate.CompanyID}", putBody);
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companyUpdated = JsonConvert.DeserializeObject<Company>(responseBody);
+            Assert.Equal("SLB", companyUpdated.Name);
+        }
+
         private static async Task<HttpClient> CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();
