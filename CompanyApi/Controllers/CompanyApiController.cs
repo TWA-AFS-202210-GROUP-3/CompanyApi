@@ -79,6 +79,17 @@ namespace CompanyApi.Controllers
             return matchedCompany.Employees;
         }
 
+        [HttpPatch("companies/{companyId}/employees/{employeeId}")]
+        public ActionResult<Employee> UpdateEmployeeInfoById([FromRoute] string companyId, [FromRoute] string employeeId, Employee employee)
+        {
+            var matchedCompanyIndex = companyList.FindIndex(company => company.CompanyID == companyId);
+            var matchedEmployeeIndex = companyList[matchedCompanyIndex].Employees
+                .FindIndex(item => item.EmployeeId == employeeId);
+            companyList[matchedCompanyIndex].Employees[matchedEmployeeIndex] = employee;
+
+            return companyList[matchedCompanyIndex].Employees[matchedEmployeeIndex];
+        }
+
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {

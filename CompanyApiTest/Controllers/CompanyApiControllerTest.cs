@@ -233,6 +233,48 @@ namespace CompanyApiTest.Controllers
             Assert.Single(employees);
         }
 
+        [Fact]
+        public async void Should_get_employee_from_company_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            Employee employee = new Employee(name: "Bob", salary: 5000);
+
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Employees.Add(employee);
+
+            var updatedCompany = JsonConvert.SerializeObject(createdCompany);
+            var updatedCompanyStringContent = new StringContent(updatedCompany, Encoding.UTF8, "application/json");
+
+            await httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}/employees", updatedCompanyStringContent);
+
+            var allEmployeeMessage = await httpClient.GetAsync($"/api/companies/{createdCompany.CompanyID}/employees");
+            var allEmployeesContent = await allEmployeeMessage.Content.ReadAsStringAsync();
+            var employees = JsonConvert.DeserializeObject<List<Employee>>(allEmployeesContent);
+
+            employees[0].Name = "OutMan";
+            employees[0].Salary = 10000;
+
+            var employeeUpdatedStringContent = new StringContent(JsonConvert.SerializeObject(employees[0]), Encoding.UTF8, "application/json");
+            var employeeInfoMessage = await httpClient.PatchAsync(
+                $"/api/companies/{createdCompany.CompanyID}/employees/{employees[0].EmployeeId}",
+                employeeUpdatedStringContent);
+            var employeeInfoContent = await employeeInfoMessage.Content.ReadAsStringAsync();
+            var employeeInfo = JsonConvert.DeserializeObject<Employee>(employeeInfoContent);
+
+            //then
+            Assert.Equal("OutMan", employeeInfo.Name);
+        }
+
+
+
         private HttpClient CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();

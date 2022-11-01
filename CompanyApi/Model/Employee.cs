@@ -4,14 +4,14 @@ namespace CompanyApi.Model
 {
     public class Employee
     {
-        private readonly string employeeId;
-
         public Employee(string name, int salary)
         {
             this.Name = name;
             this.Salary = salary;
-            this.employeeId = Guid.NewGuid().ToString();
+            this.EmployeeId = Guid.NewGuid().ToString();
         }
+
+        public string EmployeeId { get; set; }
 
         public int Salary { get; set; }
 
