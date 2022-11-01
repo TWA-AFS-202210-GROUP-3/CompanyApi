@@ -20,14 +20,10 @@ namespace CompanyApiTest.Controllers
             var httpClient = await InitHttpClient();
 
             var company = new Company(name: "SLB");
-            var companyJson = JsonConvert.SerializeObject(company);
-            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            // when
-            var response = await httpClient.PostAsync("/companies", postbody);
+            var response = await HttpResponseMessage(company, httpClient);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var responseString = await response.Content.ReadAsStringAsync();
 
-            // then
+            var responseString = await response.Content.ReadAsStringAsync();
             var createdcompany = JsonConvert.DeserializeObject<Company>(responseString);
             response.EnsureSuccessStatusCode();
             Assert.Equal("SLB", createdcompany.Name);
@@ -41,15 +37,11 @@ namespace CompanyApiTest.Controllers
             var httpClient = await InitHttpClient();
 
             var company = new Company(name: "SLB");
-            var companyJson = JsonConvert.SerializeObject(company);
-            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync("/companies", postbody);
+            await CreatCompany(company, httpClient);
 
             var company1 = new Company(name: "SLB");
-            var companyJson1 = JsonConvert.SerializeObject(company1);
-            var postbody1 = new StringContent(companyJson1, Encoding.UTF8, "application/json");
-            var response1 = await httpClient.PostAsync("/companies", postbody1);
-            // when
+            var response1 = await HttpResponseMessage(company1, httpClient);
+            //then
             Assert.Equal(HttpStatusCode.Conflict, response1.StatusCode);
         }
 
@@ -58,11 +50,8 @@ namespace CompanyApiTest.Controllers
         {
             // given
             var httpClient = await InitHttpClient();
-
             var company = new Company(name: "SLB");
-            var companyJson = JsonConvert.SerializeObject(company);
-            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies", postbody);
+            await AddCompany(company, httpClient);
 
             // when
             var response = await httpClient.GetAsync("/companies");
@@ -162,10 +151,7 @@ namespace CompanyApiTest.Controllers
             {
                 new Employee(name: "Hans", salary: 50000),
             };
-
-            company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
+            var postBodymodify = PostNewEmployee(company, employees);
 
             // when
             var responsemodify = await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees", postBodymodify);
@@ -194,11 +180,7 @@ namespace CompanyApiTest.Controllers
                 new Employee(name: "Hans", salary: 50000),
                 new Employee(name: "Jason", salary: 50000),
             };
-
-            company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees", postBodymodify);
+            await AddEmployee(company, employees, httpClient, companySLBbyID);
 
             // when
             var responsemodify = await httpClient.GetAsync("/companies/" + companySLBbyID.Id + "/employees");
@@ -226,11 +208,7 @@ namespace CompanyApiTest.Controllers
             {
                 new Employee(name: "Hans", salary: 50000),
             };
-
-            company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees", postBodymodify);
+            await AddEmployee(company, employees, httpClient, companySLBbyID);
 
             company.Employees[0].Name = "Jason";
             string employeeID = company.Employees[0].Id;
@@ -264,15 +242,10 @@ namespace CompanyApiTest.Controllers
                 new Employee(name: "Hans", salary: 50000),
                 new Employee(name: "Jason", salary: 50000),
             };
+            await AddEmployee(company, employees, httpClient, companySLBbyID);
 
-            company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees", postBodymodify);
-
-            string employeeID = company.Employees[0].Id;
             // when
-            var responsemodify = await httpClient.DeleteAsync("/companies/" + companySLBbyID.Id + "/employees/" + employeeID);
+            var responsemodify = await httpClient.DeleteAsync("/companies/" + companySLBbyID.Id + "/employees/" + company.Employees[0].Id);
             var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
             var companymodify = JsonConvert.DeserializeObject<Company>(responseStringmodify);
 
@@ -305,19 +278,29 @@ namespace CompanyApiTest.Controllers
             return await httpClient.PostAsync("/companies", postbody);
         }
 
-        //private static async Task<List<Company>> CreatEmployee(List<Employee> employees, HttpClient httpClient)
-        //{
-        //    var postResponse = await AddEmployee(employees, httpClient);
-        //    var postResponseString = await postResponse.Content.ReadAsStringAsync();
-        //    var createdemployees = JsonConvert.DeserializeObject<List<Company>>(postResponseString);
-        //    return createdemployees;
-        //}
+        private static StringContent PostNewEmployee(Company company, List<Employee> employees)
+        {
+            company.Employees = employees;
+            var serializeObjectmodify = JsonConvert.SerializeObject(company);
+            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
+            return postBodymodify;
+        }
 
-        //private static async Task<HttpResponseMessage> AddCompany(List<Employee> employees, HttpClient httpClient)
-        //{
-        //    var companyJson = JsonConvert.SerializeObject(company);
-        //    var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-        //    return await httpClient.PostAsync("/companies", postbody);
-        //}
+        private static async Task AddEmployee(Company company, List<Employee> employees, HttpClient httpClient, Company? companybyID)
+        {
+            company.Employees = employees;
+            var serializeObjectmodify = JsonConvert.SerializeObject(company);
+            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
+            await httpClient.PostAsync("/companies/" + companybyID.Id + "/employees", postBodymodify);
+        }
+
+        private static async Task<HttpResponseMessage> HttpResponseMessage(Company company, HttpClient httpClient)
+        {
+            var companyJson = JsonConvert.SerializeObject(company);
+            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            // when
+            var response = await httpClient.PostAsync("/companies", postbody);
+            return response;
+        }
     }
 }
