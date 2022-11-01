@@ -21,7 +21,7 @@ namespace CompanyApi.Controllers
 
             company.CompanyID = Guid.NewGuid().ToString();
             companies.Add(company);
-            return new CreatedResult($"/companies/{company.CompanyID}", company);        
+            return new CreatedResult($"/companies/{company.CompanyID}", company);
         }
 
         [HttpDelete]
@@ -34,6 +34,12 @@ namespace CompanyApi.Controllers
         public List<Company> GetAllCompanies()
         {
             return companies;
+        }
+
+        [HttpGet("{id}")]
+        public Company GetAllCompanies([FromRoute] string id)
+        {
+            return companies.Find(company => company.CompanyID == id);
         }
     }
 }

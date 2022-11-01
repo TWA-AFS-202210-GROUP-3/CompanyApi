@@ -68,6 +68,30 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(2, companies.Count);
         }
 
+        [Fact]
+        public async Task Should_get_a_existing_company_by_companyID_Async()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+            await PostCompany(httpClient, new Company("AAA"));
+
+            var response = await httpClient.GetAsync("/companies");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+
+            var companyShouldBeGot = companies[0];
+
+            //when
+            var newResponse = await httpClient.GetAsync($"/companies/{companyShouldBeGot.CompanyID}");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, newResponse.StatusCode);
+            var newResponseBody = await newResponse.Content.ReadAsStringAsync();
+            var companyGot = JsonConvert.DeserializeObject<Company>(newResponseBody);
+            Assert.Equal(companyShouldBeGot.Name, companyGot.Name);
+        }
+
         private static async Task<HttpClient> CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();
