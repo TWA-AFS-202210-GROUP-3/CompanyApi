@@ -52,5 +52,12 @@ namespace CompanyApi.Controllers
 
             return companies;
         }
+
+        [HttpPut("{companyId}")]
+        public List<Company> UpdateCompany([FromRoute]string companyId, Company company)
+        {
+            companies.Find(item => item.CompanyID == company.CompanyID).Name = company.Name;
+            return companies;
+        }
     }
 }

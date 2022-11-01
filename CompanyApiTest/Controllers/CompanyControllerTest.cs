@@ -27,9 +27,9 @@ namespace CompanyApiTest.Controllers
             //when
             var response = await httpclient.PostAsync("/companies", postBody);
             //then
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             var responseBody = await response.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(responseBody);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotEmpty(createdCompany.CompanyID);
         }
 
@@ -73,9 +73,9 @@ namespace CompanyApiTest.Controllers
             //when
             var response = await httpclient.GetAsync("/companies");
             //then
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseBody = await response.Content.ReadAsStringAsync();
             var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(3, companinesObtained.Count);
         }
 
@@ -106,9 +106,9 @@ namespace CompanyApiTest.Controllers
             //when
             var responseCompany = await httpclient.GetAsync($"/companies/{companyId}");
             //then
-            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
             var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
             var companyGot = JsonConvert.DeserializeObject<Company>(responseCompanyBody);
+            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
             Assert.Equal("Katy", companyGot.Name);
         }
 
@@ -137,16 +137,16 @@ namespace CompanyApiTest.Controllers
             //when
             var responseCompany = await httpclient.GetAsync("/companies?pageSize=3&pageIndex=2");
             //then
-            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
             var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
             var companyGot = JsonConvert.DeserializeObject<List<Company>>(responseCompanyBody);
+            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
             Assert.Equal(2, companyGot.Count);
             Assert.Equal("SLBB", companyGot[0].Name);
             Assert.Equal("BGCC", companyGot[1].Name);
         }
 
         [Fact]
-        public async void Should_update_the_name_of_the_company()
+        public async void Should_update_the_name_of_the_exsiting_company()
         {
             // given
             var application = new WebApplicationFactory<Program>();
@@ -167,15 +167,20 @@ namespace CompanyApiTest.Controllers
                 await httpclient.PostAsync("/companies", postBody);
             }
 
-            companies[4].Name = "ABCD";
-            var companiesJson = JsonConvert.SerializeObject(companies);
+            var response = await httpclient.GetAsync("/companies");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+
+            var companyId = companinesObtained[4].CompanyID;
+            companinesObtained[4].Name = "ABCD";
+            var companiesJson = JsonConvert.SerializeObject(companinesObtained[4]);
             var postCompaniesBody = new StringContent(companiesJson, Encoding.UTF8, "application/json");
             //when
-            var responseCompany = await httpclient.PutAsync($"/companies/{}", postCompaniesBody);
+            var responseCompanies = await httpclient.PutAsync($"/companies/{companyId}", postCompaniesBody);
             //then
-            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
-            var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
-            var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseCompanyBody);
+            var responseBodyCompanies = await responseCompanies.Content.ReadAsStringAsync();
+            var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseBodyCompanies);
+            Assert.Equal(HttpStatusCode.OK, responseCompanies.StatusCode);
             Assert.Equal("ABCD", companiesNew[4].Name);
         }
     }
