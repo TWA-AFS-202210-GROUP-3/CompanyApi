@@ -291,5 +291,37 @@ namespace CompanyApiTest.Controllers
             //then
             Assert.Equal(HttpStatusCode.OK, reponse.StatusCode);
         }
+
+        [Fact]
+        public async Task Should_delete_one_company_and_all_employees()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            Employee employee = new Employee("Liming", 5000);
+            Employee employee1 = new Employee("Zhaomin", 7000);
+            Employee employee2 = new Employee("Zhaomin1", 9000);
+            List<Employee> employees = new List<Employee>() { employee, employee1, employee2 };
+            foreach (Employee item in employees)
+            {
+                var employeeJson1 = JsonConvert.SerializeObject(item);
+                var postRequestBody2 = new StringContent(employeeJson1, Encoding.UTF8, "application/json");
+                await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody2);
+            }
+
+            //when
+            var reponse = await httpClient.DeleteAsync($"/companies/{createdCompany.ID}");
+            //then
+            Assert.Equal(HttpStatusCode.OK, reponse.StatusCode);
+        }
     }
 }

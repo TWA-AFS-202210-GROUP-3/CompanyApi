@@ -46,6 +46,18 @@ namespace CompanyApi.Controllers
             }
         }
 
+        [HttpDelete]
+        [Route("{companyID}")]
+        public void DeleteOneCompanyandEmployees([FromRoute] string companyID)
+        {
+            Company com = companies.Find(item => item.ID == companyID);
+            if (com != null)
+            {
+                com.Employees.Clear();
+                companies.Remove(com);
+            }
+        }
+
         [HttpGet]
         public ActionResult<List<Company>> GetCompanies([FromQuery] int? pageSize, [FromQuery] int? pageIndex)
         {
