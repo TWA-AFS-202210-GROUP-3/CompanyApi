@@ -41,7 +41,7 @@ namespace CompanyApi.Controllers
             {
                 return companies;
             }
-            else if (pageSize != null && pageIndex != null) 
+            else if (pageSize != null && pageIndex != null)
             {
                 int skipCount = (int)(pageSize * (pageIndex - 1));
                 if (companies.Count - skipCount > 0)
@@ -69,7 +69,7 @@ namespace CompanyApi.Controllers
 
         [HttpPut]
         [Route("{ID}")]
-        public ActionResult<Company> UpdateCompanyInfo([FromRoute] string id, [FromBody]Company company)
+        public ActionResult<Company> UpdateCompanyInfo([FromRoute] string id, [FromBody] Company company)
         {
             Company com = companies.Find(item => item.ID == id);
             if (com != null)
@@ -79,6 +79,23 @@ namespace CompanyApi.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("{ID}/employees")]
+        public ActionResult<Employee> AddEmployee([FromBody] Employee employee, [FromRoute] string ID)
+        {
+            Company com = companies.Find(item => item.ID == ID);
+            if (com != null)
+            {
+                employee.Id = Guid.NewGuid().ToString();
+                com.Employees.Add(employee);
+                return employee;
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 }

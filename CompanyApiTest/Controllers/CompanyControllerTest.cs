@@ -159,5 +159,32 @@ namespace CompanyApiTest.Controllers
             //then
             Assert.Equal("AnotherName", modifiedCompany.Name);
         }
+
+        [Fact]
+        public async Task Should_add_employee_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            //when
+            Employee employee = new Employee("Liming", 5000);
+            var employeeJson = JsonConvert.SerializeObject(employee);
+            var postRequestBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+            var reponse = await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody);
+            var responseBody1 = await reponse.Content.ReadAsStringAsync();
+            var employeeAdded = JsonConvert.DeserializeObject<Employee>(responseBody1);
+            //then
+            Assert.Equal(HttpStatusCode.OK, reponse.StatusCode);
+            Assert.Equal("Liming", employeeAdded.Name);
+        }
     }
 }
