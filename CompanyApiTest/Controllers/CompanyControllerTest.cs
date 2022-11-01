@@ -273,5 +273,67 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(3, employeesList.Count);
             Assert.Equal("Katy", employeesList[0].Name);
         }
+
+        [Fact]
+        public async void Should_be_able_to_update_information_of_an_employee_in_a_specific_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var companies = new List<Company>
+             {
+                 new Company(name: "PEPSI"),
+                 new Company(name: "COLA"),
+                 new Company(name: "FANTA"),
+                 new Company(name: "SLB"),
+                 new Company(name: "BGC"),
+             };
+            foreach (var company in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(company);
+                var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync("/companies", postBody);
+            }
+
+            var response = await httpclient.GetAsync("/companies");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companinesObtained = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+
+            var companyId = companinesObtained[3].CompanyID;
+
+            var employees = new List<Employee>
+            {
+                new Employee(name: "Katy", salary: "10w"),
+                new Employee(name: "Amy", salary: "20w"),
+                new Employee(name: "Tom", salary: "30w"),
+            };
+            foreach (var employee in employees)
+            {
+                var employeeJson = JsonConvert.SerializeObject(employee);
+                var postBodyEmployee = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync($"/companies/{companyId}/employees", postBodyEmployee);
+            }
+
+            var responseCompaniesModified = await httpclient.GetAsync("/companies");
+            var responseBodyCompaniesModified = await responseCompaniesModified.Content.ReadAsStringAsync();
+            var companinesModifiedObtained = JsonConvert.DeserializeObject<List<Company>>(responseBodyCompaniesModified);
+
+            var employeeId = companinesModifiedObtained[3].Employees[0].EmployeeId;
+            companinesModifiedObtained[3].Employees[0].Salary = "100w";
+            var companiesJson = JsonConvert.SerializeObject(companinesModifiedObtained[3]);
+            var postCompaniesBody = new StringContent(companiesJson, Encoding.UTF8, "application/json");
+
+            //when
+            var responseCompanies = await httpclient.PatchAsync($"/companies/{companyId}/employees/{employeeId}", postCompaniesBody);
+            //then
+            var responseBodyCompanies = await responseCompanies.Content.ReadAsStringAsync();
+            var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseBodyCompanies);
+            Assert.Equal(HttpStatusCode.OK, responseCompanies.StatusCode);
+            Assert.Equal("Katy", companiesNew[3].Employees[0].Name);
+            Assert.Equal("100w", companiesNew[3].Employees[0].Salary);
+        }
+
+
     }
 }

@@ -75,5 +75,13 @@ namespace CompanyApi.Controllers
             companies.Find(item => item.CompanyID == company.CompanyID).Name = company.Name;
             return companies;
         }
+
+        [HttpPatch("{companyId}/employees/{employeeId}")]
+        public List<Company> UpdateEmployeeInfo([FromRoute] string companyId, [FromRoute] string employeeId, Company company)
+        {
+            var matchedCompany = companies.Find(item => item.CompanyID == companyId);
+            matchedCompany.Employees.Find(item => item.EmployeeId == employeeId).Salary = company.Employees.Find(item => item.EmployeeId == employeeId).Salary;
+            return companies;
+        }
     }
 }
