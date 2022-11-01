@@ -58,6 +58,39 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async void Should_get_one_company_info_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var responseContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(responseContent);
+            var response = await httpClient.GetAsync($"/api/companies/{createdCompany.CompanyID}");
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_get_one_company_info_failed()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            await postRes.Content.ReadAsStringAsync();
+            var response = await httpClient.GetAsync($"/api/companies/{1}");
+            //then
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         private HttpClient CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();

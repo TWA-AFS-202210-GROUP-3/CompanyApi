@@ -30,6 +30,18 @@ namespace CompanyApi.Controllers
             return companyList;
         }
 
+        [HttpGet("companies/{id}")]
+        public ActionResult<Company> GetCompanyInfoById([FromRoute] string id)
+        {
+            var matchedCompany = companyList.Find(company => company.CompanyID == id);
+            if (matchedCompany == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return matchedCompany;
+        }
+
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {
