@@ -56,11 +56,13 @@ namespace CompanyApi.Controllers
             return matchedCompany;
         }
 
-/*        [HttpGet("companies")]
-        public ActionResult<List<Company>> GetCompanyByPage()
+        [HttpPut("companies/{id}")]
+        public ActionResult<Company> UpdateCompanyInfo(Company company)
         {
-            
-        }*/
+            var matchedCompanyIndex = companyList.FindIndex(item => item.CompanyID == company.CompanyID);
+            companyList[matchedCompanyIndex].Name = company.Name;
+            return companyList[matchedCompanyIndex];
+        }
 
         [HttpDelete("companies")]
         public void DeleteAllCompanies()

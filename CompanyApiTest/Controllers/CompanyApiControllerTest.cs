@@ -20,16 +20,17 @@ namespace CompanyApiTest.Controllers
         {
             //given
             var httpClient = CreateHttpClient();
-            var stringContent = PrepareCompany("SLB");
+            var stringContent = PrepareCompany("SLB-3");
 
             //when
+            await httpClient.DeleteAsync("/api/companies");
             var response = await httpClient.PostAsync("/api/companies", stringContent);
             var responseContent = await response.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(responseContent);
 
             //then
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            Assert.Equal("SLB", createdCompany.Name);
+            Assert.Equal("SLB-3", createdCompany.Name);
             Assert.NotNull(createdCompany.CompanyID);
         }
 
@@ -142,6 +143,35 @@ namespace CompanyApiTest.Controllers
             //then
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(new List<Company>(), matchedCompanies);
+        }
+
+        [Fact]
+        public async void Should_update_exist_company_name_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            Company company = new Company("SLB");
+
+            var serializeObject = JsonConvert.SerializeObject(company);
+            var stringContent = new StringContent(serializeObject, Encoding.UTF8, "application/json");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Name = "Schlumberger";
+
+            var newSerializeObject = JsonConvert.SerializeObject(createdCompany);
+            var newStringContent = new StringContent(newSerializeObject, Encoding.UTF8, "application/json");
+
+            var updatedResContent =
+                await httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}", newStringContent);
+            var updatedRes = await updatedResContent.Content.ReadAsStringAsync();
+            var updatedCompany = JsonConvert.DeserializeObject<Company>(updatedRes);
+            //then
+            Assert.Equal("Schlumberger", updatedCompany.Name);
         }
 
         private HttpClient CreateHttpClient()
