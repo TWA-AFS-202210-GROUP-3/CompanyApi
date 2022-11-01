@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using CompanyApi.Model;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace CompanyApiTest.Controllers
 {
@@ -53,6 +54,30 @@ namespace CompanyApiTest.Controllers
             var reponse = await httpClient.PostAsync("/companies", requestBody1);
             //then
             Assert.Equal(HttpStatusCode.Conflict, reponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task Should_return_all_conmpanies()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            var company = new Company("SLB");
+            var company1 = new Company("HappyDog");
+            var companies = new List<Company>() { company, company1 };
+            foreach (Company com in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(com);
+                var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpClient.PostAsync("/companies", requestBody);
+            }
+
+            //when
+            var reponse = await httpClient.GetAsync("/companies");
+            var responseBody = await reponse.Content.ReadAsStringAsync();
+            var allCompanies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            //then
+            Assert.Equal(2, allCompanies.Count);
         }
     }
 }

@@ -33,5 +33,11 @@ namespace CompanyApi.Controllers
         {
             companies.Clear();
         }
+
+        [HttpGet]
+        public List<Company> GetAllCompanies()
+        {
+            return companies;
+        }
     }
 }
