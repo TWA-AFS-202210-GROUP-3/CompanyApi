@@ -61,7 +61,7 @@ namespace CompanyApiTest.Controllers
             {
                 new Company(name: "Katy"),
                 new Company(name: "Toms"),
-                new Company(name: "Andy")
+                new Company(name: "Andy"),
             };
             foreach (var company in companies)
             {
@@ -90,7 +90,7 @@ namespace CompanyApiTest.Controllers
             {
                 new Company(name: "Katy"),
                 new Company(name: "Toms"),
-                new Company(name: "Andy")
+                new Company(name: "Andy"),
             };
             foreach (var company in companies)
             {
@@ -110,6 +110,39 @@ namespace CompanyApiTest.Controllers
             var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
             var companyGot = JsonConvert.DeserializeObject<Company>(responseCompanyBody);
             Assert.Equal("Katy", companyGot.Name);
+        }
+
+        [Fact]
+        public async void Should_obtain_page_index_of_the_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var companies = new List<Company>
+            {
+                new Company(name: "Katy"),
+                new Company(name: "Toms"),
+                new Company(name: "Andy"),
+                new Company(name: "SLBB"),
+                new Company(name: "BGCC"),
+            };
+            foreach (var company in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(company);
+                var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync("/companies", postBody);
+            }
+
+            //when
+            var responseCompany = await httpclient.GetAsync("/companies?pageSize=3&pageIndex=2");
+            //then
+            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
+            var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
+            var companyGot = JsonConvert.DeserializeObject<List<Company>>(responseCompanyBody);
+            Assert.Equal(2, companyGot.Count);
+            Assert.Equal("SLBB", companyGot[0].Name);
+            Assert.Equal("BGCC", companyGot[1].Name);
         }
     }
 }

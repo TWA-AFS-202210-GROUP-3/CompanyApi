@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CompanyApi.Controllers
 {
@@ -32,17 +33,30 @@ namespace CompanyApi.Controllers
             companies.Clear();
         }
 
-        [HttpGet]
-        public List<Company> GetAllCompanies()
-        {
-            return companies;
-        }
+        //[HttpGet]
+        //public List<Company> GetAllCompanies()
+        //{
+        //    return companies;
+        //}
 
         [HttpGet("{companyId}")]
-        public Company GetCompany([FromRoute] string companyId)
+        public Company GetCompanyByCompanyId([FromRoute] string companyId)
         {
             var companyGot = companies.Find(company => company.CompanyID == companyId);
             return companyGot;
+        }
+
+        [HttpGet]
+        public List<Company> GetCompany([FromQuery] int? pageSize, [FromQuery] int? pageIndex)
+        {
+            if (pageSize != null && pageIndex != null)
+            {
+                return companies.
+                    Skip((pageIndex.Value - 1) * pageSize.Value).
+                    Take(pageSize.Value).ToList();
+            }
+
+            return companies;
         }
     }
 }
