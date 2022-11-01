@@ -92,5 +92,12 @@ namespace CompanyApi.Controllers
             matchedCompany.Employees.Remove(matchedEmployee);
             return companies;
         }
+
+        [HttpDelete("{companyId}")]
+        public void DeleteEmployee([FromRoute] string companyId)
+        {
+            var matchedCompany = companies.Find(item => item.CompanyID == companyId);
+            companies.Remove(matchedCompany);
+        }
     }
 }
