@@ -83,5 +83,14 @@ namespace CompanyApi.Controllers
             matchedCompany.Employees.Find(item => item.EmployeeId == employeeId).Salary = company.Employees.Find(item => item.EmployeeId == employeeId).Salary;
             return companies;
         }
+
+        [HttpDelete("{companyId}/employees/{employeeId}")]
+        public List<Company> DeleteEmployee([FromRoute] string companyId, [FromRoute] string employeeId)
+        {
+            var matchedCompany = companies.Find(item => item.CompanyID == companyId);
+            var matchedEmployee = matchedCompany.Employees.Find(item => item.EmployeeId == employeeId);
+            matchedCompany.Employees.Remove(matchedEmployee);
+            return companies;
+        }
     }
 }
