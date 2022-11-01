@@ -33,14 +33,29 @@ namespace CompanyApiTest.Controllers
         [Fact]
         public async void Should_return_409_when_create_duplicate_company()
         {
+            //given
             var httpClient = CreateHttpClient();
             var stringContent = PrepareCompany("SLB");
-
-            //var stringContentList = new List<StringContent>{ PrepareCompany("SLB"), PrepareCompany("SLB") };
+            //when
+            await httpClient.DeleteAsync("/api/companies");
             await httpClient.PostAsync("/api/companies", stringContent);
             var response = await httpClient.PostAsync("/api/companies", stringContent);
-
+            //then
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_get_all_companies_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            await httpClient.PostAsync("/api/companies", stringContent);
+            var response = await httpClient.GetAsync("/api/companies");
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient CreateHttpClient()
