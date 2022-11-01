@@ -18,13 +18,8 @@ namespace CompanyApiTest.Controllers
         [Fact]
         public async void Should_create_company_successfully()
         {
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
-
-            Company company = new Company(name: "SLB");
-
-            var serializeObject = JsonConvert.SerializeObject(company);
-            var stringContent = new StringContent(serializeObject, Encoding.UTF8, "application/json");
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
 
             var response = await httpClient.PostAsync("/api/companies", stringContent);
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -33,6 +28,33 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.Equal("SLB", createdCompany.Name);
             Assert.NotNull(createdCompany.CompanyID);
+        }
+
+        [Fact]
+        public async void Should_return_409_when_create_duplicate_company()
+        {
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+
+            //var stringContentList = new List<StringContent>{ PrepareCompany("SLB"), PrepareCompany("SLB") };
+            await httpClient.PostAsync("/api/companies", stringContent);
+            var response = await httpClient.PostAsync("/api/companies", stringContent);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
+
+        private HttpClient CreateHttpClient()
+        {
+            var application = new WebApplicationFactory<Program>();
+            return application.CreateClient();
+        }
+
+        private StringContent PrepareCompany(string name)
+        {
+            Company company = new Company(name);
+
+            var serializeObject = JsonConvert.SerializeObject(company);
+            return new StringContent(serializeObject, Encoding.UTF8, "application/json");
         }
     }
 }
