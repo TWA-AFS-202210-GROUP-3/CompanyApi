@@ -144,5 +144,39 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("SLBB", companyGot[0].Name);
             Assert.Equal("BGCC", companyGot[1].Name);
         }
+
+        [Fact]
+        public async void Should_update_the_name_of_the_company()
+        {
+            // given
+            var application = new WebApplicationFactory<Program>();
+            var httpclient = application.CreateClient();
+            await httpclient.DeleteAsync("companies");
+            var companies = new List<Company>
+            {
+                new Company(name: "Katy"),
+                new Company(name: "Toms"),
+                new Company(name: "Andy"),
+                new Company(name: "SLBB"),
+                new Company(name: "BGCC"),
+            };
+            foreach (var company in companies)
+            {
+                var companyJson = JsonConvert.SerializeObject(company);
+                var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+                await httpclient.PostAsync("/companies", postBody);
+            }
+
+            companies[4].Name = "ABCD";
+            var companiesJson = JsonConvert.SerializeObject(companies);
+            var postCompaniesBody = new StringContent(companiesJson, Encoding.UTF8, "application/json");
+            //when
+            var responseCompany = await httpclient.PutAsync($"/companies/{}", postCompaniesBody);
+            //then
+            Assert.Equal(HttpStatusCode.OK, responseCompany.StatusCode);
+            var responseCompanyBody = await responseCompany.Content.ReadAsStringAsync();
+            var companiesNew = JsonConvert.DeserializeObject<List<Company>>(responseCompanyBody);
+            Assert.Equal("ABCD", companiesNew[4].Name);
+        }
     }
 }
