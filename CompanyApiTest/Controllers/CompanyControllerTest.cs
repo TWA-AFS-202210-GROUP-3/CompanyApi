@@ -19,8 +19,8 @@ namespace CompanyApiTest.Controllers
         public async Task Should_post_a_company_successfullyAsync()
         {
             //given
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
+            HttpClient httpClient = await CreateHttpClient();
+
             var company = new Company("SLB");
             var companyJson = JsonConvert.SerializeObject(company);
             var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
@@ -90,6 +90,35 @@ namespace CompanyApiTest.Controllers
             var newResponseBody = await newResponse.Content.ReadAsStringAsync();
             var companyGot = JsonConvert.DeserializeObject<Company>(newResponseBody);
             Assert.Equal(companyShouldBeGot.Name, companyGot.Name);
+        }
+
+        [Fact]
+        public async Task Should_get_page_size_companies_from_page_index_Async()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+            await PostCompany(httpClient, new Company("AAA"));
+            await PostCompany(httpClient, new Company("BBB"));
+            await PostCompany(httpClient, new Company("CCC"));
+            await PostCompany(httpClient, new Company("DDD"));
+            await PostCompany(httpClient, new Company("EEE"));
+            await PostCompany(httpClient, new Company("FFF"));
+            await PostCompany(httpClient, new Company("GGG"));
+
+
+            var pageSize = 3;
+            var pageIndex = 2;
+
+            //when
+            var response = await httpClient.GetAsync($"/companies?pageSize={pageSize}&pageIndex={pageIndex}");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companiesGot = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal(pageSize, companiesGot.Count);
+            Assert.Equal("CCC", companiesGot[0].Name);
         }
 
         private static async Task<HttpClient> CreateHttpClient()

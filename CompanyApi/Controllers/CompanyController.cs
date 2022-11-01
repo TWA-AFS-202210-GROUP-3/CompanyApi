@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,8 +32,16 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet]
-        public List<Company> GetAllCompanies()
+        public List<Company> GetCompanies([FromQuery]int? pageSize, int? pageIndex)
         {
+            if (pageSize.HasValue && pageIndex.HasValue)
+            {
+                var start = (pageIndex - 1) * pageSize;
+                var end = (pageIndex * pageSize) - 1;
+                return companies.Where((company, index) => index >= start && index <= end)
+                                .ToList();
+            }
+
             return companies;
         }
 
