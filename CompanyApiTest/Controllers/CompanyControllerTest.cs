@@ -183,8 +183,40 @@ namespace CompanyApiTest.Controllers
             var responseBody1 = await reponse.Content.ReadAsStringAsync();
             var employeeAdded = JsonConvert.DeserializeObject<Employee>(responseBody1);
             //then
-            Assert.Equal(HttpStatusCode.OK, reponse.StatusCode);
             Assert.Equal("Liming", employeeAdded.Name);
+        }
+
+        [Fact]
+        public async Task Should_return_all_employees_successfully()
+        {
+            //given
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+
+            var company = new Company("SLB");
+            var companyJson = JsonConvert.SerializeObject(company);
+            var requestBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync("/companies", requestBody);
+            var postResponseBody = await postResponse.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseBody);
+
+            //when
+            Employee employee = new Employee("Liming", 5000);
+            Employee employee1 = new Employee("Zhaomin", 7000);
+            List<Employee> employees = new List<Employee>() { employee, employee1 };
+            foreach(Employee item in employees)
+            {
+                var employeeJson = JsonConvert.SerializeObject(item);
+                var postRequestBody = new StringContent(employeeJson, Encoding.UTF8, "application/json");
+                await httpClient.PostAsync($"/companies/{createdCompany.ID}/employees", postRequestBody);
+            }
+
+            var reponse = await httpClient.GetAsync($"/companies/{createdCompany.ID}/employees");
+            var responseBody1 = await reponse.Content.ReadAsStringAsync();
+            var allEmployee = JsonConvert.DeserializeObject<List<Employee>>(responseBody1);
+            //then
+            Assert.Equal(2, allEmployee.Count);
         }
     }
 }

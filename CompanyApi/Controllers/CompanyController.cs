@@ -61,6 +61,19 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet]
+        [Route("{ID}/employees")]
+        public ActionResult<List<Employee>> GetAllEmployees([FromRoute] string id)
+        {
+            Company com = companies.Find(item => item.ID == id);
+            if (com != null)
+            {
+                return com.Employees;
+            }
+
+            return BadRequest();
+        }
+
+        [HttpGet]
         [Route("{ID}")]
         public Company GetOneCompanyByID([FromRoute] string id)
         {
@@ -83,9 +96,9 @@ namespace CompanyApi.Controllers
 
         [HttpPost]
         [Route("{ID}/employees")]
-        public ActionResult<Employee> AddEmployee([FromBody] Employee employee, [FromRoute] string ID)
+        public ActionResult<Employee> AddEmployee([FromBody] Employee employee, [FromRoute] string id)
         {
-            Company com = companies.Find(item => item.ID == ID);
+            Company com = companies.Find(item => item.ID == id);
             if (com != null)
             {
                 employee.Id = Guid.NewGuid().ToString();
