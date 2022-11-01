@@ -18,13 +18,16 @@ namespace CompanyApiTest.Controllers
         [Fact]
         public async void Should_create_company_successfully()
         {
+            //given
             var httpClient = CreateHttpClient();
             var stringContent = PrepareCompany("SLB");
 
+            //when
             var response = await httpClient.PostAsync("/api/companies", stringContent);
             var responseContent = await response.Content.ReadAsStringAsync();
             var createdCompany = JsonConvert.DeserializeObject<Company>(responseContent);
 
+            //then
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.Equal("SLB", createdCompany.Name);
             Assert.NotNull(createdCompany.CompanyID);
@@ -83,12 +86,62 @@ namespace CompanyApiTest.Controllers
             var stringContent = PrepareCompany("SLB");
             //when
             await httpClient.DeleteAsync("/api/companies");
-            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
-
-            await postRes.Content.ReadAsStringAsync();
+            await httpClient.PostAsync("/api/companies", stringContent);
             var response = await httpClient.GetAsync($"/api/companies/{1}");
             //then
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_return_1_company_for_page_2()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var page1Company = PrepareCompany("SLB");
+            var page2Company = PrepareCompany("SLB-1");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var post1Res = httpClient.PostAsync("/api/companies", page1Company);
+            while (post1Res.IsCompleted)
+            {
+                var postRes = await httpClient.PostAsync("/api/companies", page2Company);
+
+                var postResContent = await postRes.Content.ReadAsStringAsync();
+                var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+                var response = await httpClient.GetAsync($"/api/companies?page=2&size=1");
+                var pageResponseContent = await response.Content.ReadAsStringAsync();
+                var matchedCompanies = JsonConvert.DeserializeObject<List<Company>>(pageResponseContent);
+                //then
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(matchedCompanies[0].CompanyID, createdCompany.CompanyID);
+            }
+        }
+
+        [Fact]
+        public async void Should_return_empty_list_for_page_oversize()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var page1Company = PrepareCompany("SLB");
+            var page2Company = PrepareCompany("SLB-1");
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var post1Res = httpClient.PostAsync("/api/companies", page1Company);
+            while (post1Res.IsCompleted)
+            {
+                var postRes = await httpClient.PostAsync("/api/companies", page2Company);
+
+                var postResContent = await postRes.Content.ReadAsStringAsync();
+                var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+            }
+
+            var response = await httpClient.GetAsync($"/api/companies?page=3&size=4");
+            var pageResponseContent = await response.Content.ReadAsStringAsync();
+            var matchedCompanies = JsonConvert.DeserializeObject<List<Company>>(pageResponseContent);
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(new List<Company>(), matchedCompanies);
         }
 
         private HttpClient CreateHttpClient()

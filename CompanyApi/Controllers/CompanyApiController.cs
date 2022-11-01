@@ -25,8 +25,22 @@ namespace CompanyApi.Controllers
         }
 
         [HttpGet("companies")]
-        public ActionResult<List<Company>> GetAllCompanies()
+        public ActionResult<List<Company>> GetAllCompanies([FromQuery] int? page, [FromQuery] int? size)
         {
+            if (page != null && size != null)
+            {
+                try
+                {
+                    var matchedCompanies = companyList.GetRange((page.Value - 1) * page.Value, size.Value);
+                    return matchedCompanies.Count > 0 ? matchedCompanies : new List<Company>();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return new List<Company>();
+                }
+            }
+
             return companyList;
         }
 
@@ -41,6 +55,12 @@ namespace CompanyApi.Controllers
 
             return matchedCompany;
         }
+
+/*        [HttpGet("companies")]
+        public ActionResult<List<Company>> GetCompanyByPage()
+        {
+            
+        }*/
 
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
