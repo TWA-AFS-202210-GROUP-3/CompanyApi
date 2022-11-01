@@ -37,23 +37,51 @@ namespace CompanyApiTest.Controllers
         }
 
         [Fact]
-        public async Task Should_post_a_company_having_unique_name_Async()
+        public async Task Should_not_post_a_company_name_already_exist_Async()
         {
             //given
-            var application = new WebApplicationFactory<Program>();
-            var httpClient = application.CreateClient();
-            await httpClient.DeleteAsync("/companies");
-
-            var company = new Company("SLB");
-            var companyJson = JsonConvert.SerializeObject(company);
-            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies", postBody);
+            HttpClient httpClient = await CreateHttpClient();
+            StringContent postBody = await PostCompany(httpClient, new Company("SLB"));
 
             //when
             var response = await httpClient.PostAsync("/companies", postBody);
 
             //then
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Should_get_all_companies_Async()
+        {
+            //given
+            HttpClient httpClient = await CreateHttpClient();
+            await PostCompany(httpClient, new Company("SLB"));
+            await PostCompany(httpClient, new Company("AAA"));
+
+            //when
+            var response = await httpClient.GetAsync("/companies");
+
+            //then
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<List<Company>>(responseBody);
+            Assert.Equal(2, companies.Count);
+        }
+
+        private static async Task<HttpClient> CreateHttpClient()
+        {
+            var application = new WebApplicationFactory<Program>();
+            var httpClient = application.CreateClient();
+            await httpClient.DeleteAsync("/companies");
+            return httpClient;
+        }
+
+        private static async Task<StringContent> PostCompany(HttpClient httpClient, Company company)
+        {
+            var companyJson = JsonConvert.SerializeObject(company);
+            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            await httpClient.PostAsync("/companies", postBody);
+            return postBody;
         }
     }
 }
