@@ -234,7 +234,7 @@ namespace CompanyApiTest.Controllers
         }
 
         [Fact]
-        public async void Should_get_employee_from_company_successfully()
+        public async void Should_update_employee_from_company_successfully()
         {
             //given
             var httpClient = CreateHttpClient();
@@ -273,7 +273,35 @@ namespace CompanyApiTest.Controllers
             Assert.Equal("OutMan", employeeInfo.Name);
         }
 
+        [Fact]
+        public async void Should_delete_employee_from_company_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            Employee employee = new Employee(name: "Bob", salary: 5000);
 
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Employees.Add(employee);
+
+            var updatedCompanyStringContent = new StringContent(JsonConvert.SerializeObject(createdCompany), Encoding.UTF8, "application/json");
+
+            var putAsync = httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}/employees", updatedCompanyStringContent);
+
+            while (putAsync.IsCompleted)
+            {
+                var employeeDeleteMessage = await httpClient.DeleteAsync(
+                    $"/api/companies/{createdCompany.CompanyID}/employees/{employee.EmployeeId}");
+                //then
+                Assert.Equal(HttpStatusCode.NoContent, employeeDeleteMessage.StatusCode);
+            }
+        }
 
         private HttpClient CreateHttpClient()
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CompanyApi.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -88,6 +89,15 @@ namespace CompanyApi.Controllers
             companyList[matchedCompanyIndex].Employees[matchedEmployeeIndex] = employee;
 
             return companyList[matchedCompanyIndex].Employees[matchedEmployeeIndex];
+        }
+
+        [HttpDelete("companies/{companyId}/employees/{employeeId}")]
+        public void DeleteEmployeeById([FromRoute] string companyId, [FromRoute] string employeeId)
+        {
+            var matchedCompanyIndex = companyList.FindIndex(company => company.CompanyID == companyId);
+            var matchedEmployee = companyList[matchedCompanyIndex].Employees
+                .Find(item => item.EmployeeId == employeeId);
+            companyList[matchedCompanyIndex].Employees.Remove(matchedEmployee);
         }
 
         [HttpDelete("companies")]
