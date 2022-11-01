@@ -303,6 +303,36 @@ namespace CompanyApiTest.Controllers
             }
         }
 
+        [Fact]
+        public async void Should_delete_employees_when_delete_company_successfully()
+        {
+            //given
+            var httpClient = CreateHttpClient();
+            var stringContent = PrepareCompany("SLB");
+            Employee employee = new Employee(name: "Bob", salary: 5000);
+
+            //when
+            await httpClient.DeleteAsync("/api/companies");
+            var postRes = await httpClient.PostAsync("/api/companies", stringContent);
+
+            var postResContent = await postRes.Content.ReadAsStringAsync();
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResContent);
+
+            createdCompany.Employees.Add(employee);
+
+            var updatedCompanyStringContent = new StringContent(JsonConvert.SerializeObject(createdCompany), Encoding.UTF8, "application/json");
+
+            var putAsync = httpClient.PutAsync($"/api/companies/{createdCompany.CompanyID}/employees", updatedCompanyStringContent);
+
+            while (putAsync.IsCompleted)
+            {
+                var companyDeleteMessage = await httpClient.DeleteAsync(
+                    $"/api/companies/{createdCompany.CompanyID}");
+                //then
+                Assert.Equal(HttpStatusCode.NoContent, companyDeleteMessage.StatusCode);
+            }
+        }
+
         private HttpClient CreateHttpClient()
         {
             var application = new WebApplicationFactory<Program>();

@@ -100,6 +100,13 @@ namespace CompanyApi.Controllers
             companyList[matchedCompanyIndex].Employees.Remove(matchedEmployee);
         }
 
+        [HttpDelete("companies/{id}")]
+        public void DeleteCompanyById([FromRoute] string id)
+        {
+            var matchCompany = companyList.Find(company => company.CompanyID == id);
+            companyList.Remove(matchCompany);
+        }
+
         [HttpDelete("companies")]
         public void DeleteAllCompanies()
         {
