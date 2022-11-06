@@ -24,10 +24,10 @@ namespace CompanyApiTest.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var createdcompany = JsonConvert.DeserializeObject<Company>(responseString);
+            var createdCompany = JsonConvert.DeserializeObject<Company>(responseString);
             response.EnsureSuccessStatusCode();
-            Assert.Equal("SLB", createdcompany.Name);
-            Assert.NotEmpty(createdcompany.Id);
+            Assert.Equal("SLB", createdCompany.Name);
+            Assert.NotEmpty(createdCompany.Id);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace CompanyApiTest.Controllers
             var httpClient = await InitHttpClient();
 
             var company = new Company(name: "SLB");
-            await CreatCompany(company, httpClient);
+            await CreateCompany(company, httpClient);
 
             var company1 = new Company(name: "SLB");
             var response1 = await HttpResponseMessage(company1, httpClient);
@@ -58,10 +58,10 @@ namespace CompanyApiTest.Controllers
             var responseString = await response.Content.ReadAsStringAsync();
 
             // then
-            var createdcompany = JsonConvert.DeserializeObject<List<Company>>(responseString);
+            var createdCompany = JsonConvert.DeserializeObject<List<Company>>(responseString);
             response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("SLB", createdcompany[0].Name);
+            Assert.Equal("SLB", createdCompany[0].Name);
         }
 
         [Fact]
@@ -72,16 +72,16 @@ namespace CompanyApiTest.Controllers
 
             var companySLB = new Company(name: "SLB");
             var companySLBB = new Company(name: "SLBB");
-            var createdcompany = await CreatCompany(companySLB, httpClient);
+            var createdCompany = await CreateCompany(companySLB, httpClient);
             await AddCompany(companySLBB, httpClient);
 
             // when
-            var response = await httpClient.GetAsync("/companies/" + createdcompany.Id);
+            var response = await httpClient.GetAsync("/companies/" + createdCompany.Id);
             var responseString = await response.Content.ReadAsStringAsync();
-            var companybyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companyById = JsonConvert.DeserializeObject<Company>(responseString);
             // then
             response.EnsureSuccessStatusCode();
-            Assert.Equal("SLB", companybyID.Name);
+            Assert.Equal("SLB", companyById.Name);
         }
 
         [Fact]
@@ -93,9 +93,9 @@ namespace CompanyApiTest.Controllers
             var companySLB = new Company(name: "SLB");
             var companySLBB = new Company(name: "SLBB");
             var companySLCC = new Company(name: "SLCC");
-            await CreatCompany(companySLB, httpClient);
-            await CreatCompany(companySLBB, httpClient);
-            await CreatCompany(companySLCC, httpClient);
+            await CreateCompany(companySLB, httpClient);
+            await CreateCompany(companySLBB, httpClient);
+            await CreateCompany(companySLCC, httpClient);
 
             // when
             var response = await httpClient.GetAsync("/companies?pageSize=2&pageIndex=2");
@@ -113,21 +113,21 @@ namespace CompanyApiTest.Controllers
             // given
             var httpClient = await InitHttpClient();
 
-            var companySLB = new Company(name: "SLB");
-            var company = await CreatCompany(companySLB, httpClient);
+            var companySlb = new Company(name: "SLB");
+            var company = await CreateCompany(companySlb, httpClient);
             var response = await httpClient.GetAsync("/companies/" + company.Id);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var companySLBbyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companySlBbyId = JsonConvert.DeserializeObject<Company>(responseString);
 
-            companySLB.Name = "Test";
-            var serializeObjectmodify = JsonConvert.SerializeObject(companySLB);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
+            companySlb.Name = "Test";
+            var serializeObjectModify = JsonConvert.SerializeObject(companySlb);
+            var postBodyModify = new StringContent(serializeObjectModify, Encoding.UTF8, "application/json");
 
             // when
-            var responsemodify = await httpClient.PatchAsync("/companies/" + companySLBbyID.Id, postBodymodify);
-            var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
-            var companies = JsonConvert.DeserializeObject<Company>(responseStringmodify);
+            var responseModify = await httpClient.PatchAsync("/companies/" + companySlBbyId.Id, postBodyModify);
+            var responseStringModify = await responseModify.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<Company>(responseStringModify);
             // then
             response.EnsureSuccessStatusCode();
             //Assert.Equal(HttpStatusCode.OK, responsemodify.StatusCode);
@@ -140,23 +140,23 @@ namespace CompanyApiTest.Controllers
             // given
             var httpClient = await InitHttpClient();
 
-            var companySLB = new Company(name: "SLB");
-            var company = await CreatCompany(companySLB, httpClient);
+            var companySlb = new Company(name: "SLB");
+            var company = await CreateCompany(companySlb, httpClient);
             var response = await httpClient.GetAsync("/companies/" + company.Id);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var companySLBbyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companySlBbyId = JsonConvert.DeserializeObject<Company>(responseString);
 
             var employees = new List<Employee>
             {
                 new Employee(name: "Hans", salary: 50000),
             };
-            var postBodymodify = PostNewEmployee(company, employees);
+            var postBodyModify = PostNewEmployee(company, employees);
 
             // when
-            var responsemodify = await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees", postBodymodify);
-            var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
-            var companies = JsonConvert.DeserializeObject<Company>(responseStringmodify);
+            var responseModify = await httpClient.PostAsync("/companies/" + companySlBbyId.Id + "/employees", postBodyModify);
+            var responseStringModify = await responseModify.Content.ReadAsStringAsync();
+            var companies = JsonConvert.DeserializeObject<Company>(responseStringModify);
             // then
             response.EnsureSuccessStatusCode();
             Assert.Equal("Hans", companies.Employees[0].Name);
@@ -168,27 +168,27 @@ namespace CompanyApiTest.Controllers
             // given
             var httpClient = await InitHttpClient();
 
-            var companySLB = new Company(name: "SLB");
-            var company = await CreatCompany(companySLB, httpClient);
+            var companySlb = new Company(name: "SLB");
+            var company = await CreateCompany(companySlb, httpClient);
             var response = await httpClient.GetAsync("/companies/" + company.Id);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var companySLBbyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companySlbById = JsonConvert.DeserializeObject<Company>(responseString);
 
             var employees = new List<Employee>
             {
                 new Employee(name: "Hans", salary: 50000),
                 new Employee(name: "Jason", salary: 50000),
             };
-            await AddEmployee(company, employees, httpClient, companySLBbyID);
+            await AddEmployee(company, employees, httpClient, companySlbById);
 
             // when
-            var responsemodify = await httpClient.GetAsync("/companies/" + companySLBbyID.Id + "/employees");
-            var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
-            var getemployees = JsonConvert.DeserializeObject<List<Employee>>(responseStringmodify);
+            var responseModify = await httpClient.GetAsync("/companies/" + companySlbById.Id + "/employees");
+            var responseStringModify = await responseModify.Content.ReadAsStringAsync();
+            var getEmployees = JsonConvert.DeserializeObject<List<Employee>>(responseStringModify);
             // then
             response.EnsureSuccessStatusCode();
-            Assert.Equal(2, getemployees.Count);
+            Assert.Equal(2, getEmployees.Count);
         }
 
         [Fact]
@@ -197,28 +197,28 @@ namespace CompanyApiTest.Controllers
             // given
             var httpClient = await InitHttpClient();
 
-            var companySLB = new Company(name: "SLB");
-            var company = await CreatCompany(companySLB, httpClient);
+            var companySlb = new Company(name: "SLB");
+            var company = await CreateCompany(companySlb, httpClient);
             var response = await httpClient.GetAsync("/companies/" + company.Id);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var companySLBbyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companySlBbyId = JsonConvert.DeserializeObject<Company>(responseString);
 
             var employees = new List<Employee>
             {
                 new Employee(name: "Hans", salary: 50000),
             };
-            await AddEmployee(company, employees, httpClient, companySLBbyID);
+            await AddEmployee(company, employees, httpClient, companySlBbyId);
 
             company.Employees[0].Name = "Jason";
-            string employeeID = company.Employees[0].Id;
-            var serializeObjectemployeemodify = JsonConvert.SerializeObject(company);
-            var employeemodify = new StringContent(serializeObjectemployeemodify, Encoding.UTF8, "application/json");
+            string employeeId = company.Employees[0].Id;
+            var serializeObjectEmployeeModify = JsonConvert.SerializeObject(company);
+            var employeeModify = new StringContent(serializeObjectEmployeeModify, Encoding.UTF8, "application/json");
             // when
-            var responsemodify = await httpClient.PostAsync("/companies/" + companySLBbyID.Id + "/employees/" + employeeID, employeemodify);
-            var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
-            var companymodify = JsonConvert.DeserializeObject<Company>(responseStringmodify);
-            Employee employee = companymodify.Employees[0];
+            var responseModify = await httpClient.PostAsync("/companies/" + companySlBbyId.Id + "/employees/" + employeeId, employeeModify);
+            var responseStringModify = await responseModify.Content.ReadAsStringAsync();
+            var companyModify = JsonConvert.DeserializeObject<Company>(responseStringModify);
+            Employee employee = companyModify.Employees[0];
             // then
             response.EnsureSuccessStatusCode();
             Assert.Equal("Jason", employee.Name);
@@ -230,28 +230,28 @@ namespace CompanyApiTest.Controllers
             // given
             var httpClient = await InitHttpClient();
 
-            var companySLB = new Company(name: "SLB");
-            var company = await CreatCompany(companySLB, httpClient);
+            var companySlb = new Company(name: "SLB");
+            var company = await CreateCompany(companySlb, httpClient);
             var response = await httpClient.GetAsync("/companies/" + company.Id);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var companySLBbyID = JsonConvert.DeserializeObject<Company>(responseString);
+            var companySlBbyId = JsonConvert.DeserializeObject<Company>(responseString);
 
             var employees = new List<Employee>
             {
                 new Employee(name: "Hans", salary: 50000),
                 new Employee(name: "Jason", salary: 50000),
             };
-            await AddEmployee(company, employees, httpClient, companySLBbyID);
+            await AddEmployee(company, employees, httpClient, companySlBbyId);
 
             // when
-            var responsemodify = await httpClient.DeleteAsync("/companies/" + companySLBbyID.Id + "/employees/" + company.Employees[0].Id);
-            var responseStringmodify = await responsemodify.Content.ReadAsStringAsync();
-            var companymodify = JsonConvert.DeserializeObject<Company>(responseStringmodify);
+            var responseModify = await httpClient.DeleteAsync("/companies/" + companySlBbyId.Id + "/employees/" + company.Employees[0].Id);
+            var responseStringModify = await responseModify.Content.ReadAsStringAsync();
+            var companyModify = JsonConvert.DeserializeObject<Company>(responseStringModify);
 
             // then
             response.EnsureSuccessStatusCode();
-            Assert.Equal(1, companymodify.Employees.Count);
+            Assert.Equal(1, companyModify.Employees.Count);
         }
 
         // Public Method
@@ -263,43 +263,43 @@ namespace CompanyApiTest.Controllers
             return httpClient;
         }
 
-        private static async Task<Company> CreatCompany(Company company, HttpClient httpClient)
+        private static async Task<Company> CreateCompany(Company company, HttpClient httpClient)
         {
             var postResponse = await AddCompany(company, httpClient);
             var postResponseString = await postResponse.Content.ReadAsStringAsync();
-            var createdcompany = JsonConvert.DeserializeObject<Company>(postResponseString);
-            return createdcompany;
+            var createdCompany = JsonConvert.DeserializeObject<Company>(postResponseString);
+            return createdCompany;
         }
 
         private static async Task<HttpResponseMessage> AddCompany(Company company, HttpClient httpClient)
         {
             var companyJson = JsonConvert.SerializeObject(company);
-            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
-            return await httpClient.PostAsync("/companies", postbody);
+            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            return await httpClient.PostAsync("/companies", postBody);
         }
 
         private static StringContent PostNewEmployee(Company company, List<Employee> employees)
         {
             company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
-            return postBodymodify;
+            var serializeObjectModify = JsonConvert.SerializeObject(company);
+            var postBodyModify = new StringContent(serializeObjectModify, Encoding.UTF8, "application/json");
+            return postBodyModify;
         }
 
-        private static async Task AddEmployee(Company company, List<Employee> employees, HttpClient httpClient, Company? companybyID)
+        private static async Task AddEmployee(Company company, List<Employee> employees, HttpClient httpClient, Company? companyById)
         {
             company.Employees = employees;
-            var serializeObjectmodify = JsonConvert.SerializeObject(company);
-            var postBodymodify = new StringContent(serializeObjectmodify, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("/companies/" + companybyID.Id + "/employees", postBodymodify);
+            var serializeObjectModify = JsonConvert.SerializeObject(company);
+            var postBodyModify = new StringContent(serializeObjectModify, Encoding.UTF8, "application/json");
+            await httpClient.PostAsync("/companies/" + companyById.Id + "/employees", postBodyModify);
         }
 
         private static async Task<HttpResponseMessage> HttpResponseMessage(Company company, HttpClient httpClient)
         {
             var companyJson = JsonConvert.SerializeObject(company);
-            var postbody = new StringContent(companyJson, Encoding.UTF8, "application/json");
+            var postBody = new StringContent(companyJson, Encoding.UTF8, "application/json");
             // when
-            var response = await httpClient.PostAsync("/companies", postbody);
+            var response = await httpClient.PostAsync("/companies", postBody);
             return response;
         }
     }

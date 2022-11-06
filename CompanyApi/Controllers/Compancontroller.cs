@@ -60,10 +60,10 @@ namespace CompanyApi.Controllers
         public ActionResult<Company> ChangeInformation([FromRoute] string id, Company companymodify)
         {
             var foundCompany = companies.Find(_ => _.Id == id);
-            //if (foundCompany.Id != companymodify.Id)
-            //{
-            //    return new NotFoundResult();
-            //}
+            if (foundCompany == null)
+            {
+                return new NotFoundResult();
+            }
 
             foundCompany.Name = companymodify.Name;
 
